@@ -28,11 +28,15 @@ if st.button("🔍 Analyze Market"):
             data.dropna(inplace=True)
             data["20_MA"] = data["Close"].rolling(window=20).mean()
 
-            last_close = float(data["Close"].iloc[-1])
-            entry_price = float(data["Close"].quantile(0.3))
-            exit_price = float(data["Close"].quantile(0.9))
+            try:
+    last_close = float(data["Close"].iloc[-1])
+    entry_price = float(data["Close"].quantile(0.3).item())
+    exit_price = float(data["Close"].quantile(0.9).item())
 
-            trend = "📉 Likely to Fall" if last_close > entry_price else "📈 Likely to Rise"
+    trend = "📉 Likely to Fall" if last_close > entry_price else "📈 Likely to Rise"
+except Exception as e:
+    st.error(f"Data processing error: {e}")
+
             time_estimate = "1–2 weeks" if abs(last_close - entry_price) / last_close > 0.1 else "2–4 days"
 
             lot_size = round(capital / entry_price, 2)
