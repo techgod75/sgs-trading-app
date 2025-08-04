@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="SGS Trading App", layout="wide")
 st.title("📈 SGS Trading App – Institutional Pattern Analyzer")
 
-market_type = st.selectbox("Select Market Type", ["Forex", Indices", "Stocks", "Futures"])
+market_type = st.selectbox("Select Market Type", ["Forex", "Indices", "Stocks", "Futures"])
 
 if market_type == "Forex":
     symbol = st.selectbox("Select Forex Pair", ["EURUSD=X", "USDJPY=X", "GBPUSD=X", "XAUUSD=X", "BTC-USD"])
