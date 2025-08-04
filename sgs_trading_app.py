@@ -16,7 +16,9 @@ capital = st.number_input("Capital Available ($)", value=1000.0, step=100.0)
 API_KEY = "AK4PG0CDIEJA7G5A"
 
 def fetch_alpha_forex(pair):
-    f, t = pair.split("/")
+    from_symbol, to_symbol = pair.split("/")
+    ...
+
     url = (
         f"https://www.alphavantage.co/query?function=FX_DAILY"
         f"&from_symbol={f}&to_symbol={t}&apikey={API_KEY}&outputsize=full"
@@ -60,6 +62,7 @@ if st.button("🔍 Analyze"):
         else:
             st.error("Invalid Forex symbol. Use format like 'XAUUSD' or 'EUR/USD'.")
             st.stop()
+
 
     else:
         data = yf.download(sym, period="5y", interval="1d", progress=False)
