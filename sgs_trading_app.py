@@ -12,56 +12,50 @@ if market_type == "Forex":
 elif market_type == "Indices":
     symbol = st.selectbox("Select Index", ["^NSEI", "^BSESN", "^GSPC", "^IXIC", "^DJI"])
 elif market_type == "Stocks":
-    symbol = st.text_input("Enter Stock Ticker (e.g., RELIANCE.NS, AAPL, TSLA)", value="RELIANCE.NS")
+    symbol = st.text_input("Enter Stock Ticker (e.g., RELIANCE.NS, AAPL)", value="RELIANCE.NS")
 elif market_type == "Futures":
-    symbol = st.text_input("Enter Futures Symbol (e.g., CL=F, GC=F, NQ=F)", value="GC=F")
+    symbol = st.text_input("Enter Futures Symbol (e.g., CL=F, GC=F)", value="GC=F")
 
 capital = st.number_input("Enter Capital to Trade ($)", value=1000.0, step=100.0)
 
 if st.button("🔍 Analyze Market"):
     try:
-        data = yf.download(symbol, period="5y", interval="1d", progress=False)
-live_price = yf.Ticker(symbol).info.get("regularMarketPrice", None)
-
-        if data.empty:
-            st.error("No data found for the selected symbol. Please check the symbol or try another.")
+        df = yf.download(symbol, period="5y", interval="1d", progress=False)
+        if df.empty:
+            st.error("No historical data found. Please check symbol.")
         else:
-            data.dropna(inplace=True)
-            data["20_MA"] = data["Close"].rolling(window=20).mean()
-
+            df.dropna(inplace=True)
             try:
-    # Fetch live price separately
-ticker = yf.Ticker(symbol)
-live_price = ticker.info.get("regularMarketPrice", None)
+                live_price = yf.Ticker(symbol).info.get("regularMarketPrice", None)
+            except Exception as live_err:
+                st.warning(f"Live price fetch failed: {live_err}")
+                live_price = None
 
-if not live_price:
-    st.error("Live market price not available. Please try another symbol or check internet connection.")
-else:
-    last_close = float(live_price)
+            if live_price:
+                last_close = float(live_price)
+            else:
+                last_close = float(df["Close"].iloc[-1])
+                st.info(f"Using last available close: ${last_close:.2f}")
 
-    entry_price = float(data["Close"].quantile(0.3).item())
-    exit_price = float(data["Close"].quantile(0.9).item())
+            entry_price = float(df["Close"].quantile(0.3).item())
+            exit_price = float(df["Close"].quantile(0.9).item())
 
-    trend = "📉 Likely to Fall" if last_close > entry_price else "📈 Likely to Rise"
-except Exception as e:
-    st.error(f"Data processing error: {e}")
-
-            time_estimate = "1–2 weeks" if abs(last_close - entry_price) / last_close > 0.1 else "2–4 days"
+            trend = "📉 Likely to Fall" if last_close > entry_price else "📈 Likely to Rise"
+            pct_diff = abs(last_close - entry_price) / last_close
+            time_est = "1–2 weeks" if pct_diff > 0.1 else "2–4 days"
 
             lot_size = round(capital / entry_price, 2)
-            suggested_leverage = 10 if market_type == "Forex" else 5
+            leverage = 10 if market_type == "Forex" else 5
+            profit = (exit_price - entry_price) * lot_size
 
             st.subheader("📊 Result Summary")
             st.write(f"**Current Price:** ${last_close:.2f}")
             st.write(f"**Suggested Entry:** ${entry_price:.2f}")
             st.write(f"**Suggested Exit:** ${exit_price:.2f}")
-            st.write(f"**Market Trend Forecast:** {trend}")
-            st.write(f"**Time to Entry/Exit:** {time_estimate}")
-            st.write(f"**Recommended Lot Size:** {lot_size} units")
-            st.write(f"**Suggested Leverage:** x{suggested_leverage}")
-
-            profit_estimate = (exit_price - entry_price) * lot_size
-            st.write(f"**Estimated Profit:** ${profit_estimate:.2f}")
-
+            st.write(f"**Trend Forecast:** {trend}")
+            st.write(f"**Time to Entry/Exit:** {time_est}")
+            st.write(f"**Lot Size:** {lot_size} units")
+            st.write(f"**Leverage Suggested:** x{leverage}")
+            st.write(f"**Estimated Profit:** ${profit:.2f}")
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        st.error(f"Error: {e}")
