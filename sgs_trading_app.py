@@ -21,6 +21,7 @@ capital = st.number_input("Enter Capital to Trade ($)", value=1000.0, step=100.0
 if st.button("🔍 Analyze Market"):
     try:
         data = yf.download(symbol, period="5y", interval="1d", progress=False)
+live_price = yf.Ticker(symbol).info.get("regularMarketPrice", None)
 
         if data.empty:
             st.error("No data found for the selected symbol. Please check the symbol or try another.")
@@ -29,7 +30,15 @@ if st.button("🔍 Analyze Market"):
             data["20_MA"] = data["Close"].rolling(window=20).mean()
 
             try:
-    last_close = float(data["Close"].iloc[-1])
+    # Fetch live price separately
+ticker = yf.Ticker(symbol)
+live_price = ticker.info.get("regularMarketPrice", None)
+
+if not live_price:
+    st.error("Live market price not available. Please try another symbol or check internet connection.")
+else:
+    last_close = float(live_price)
+
     entry_price = float(data["Close"].quantile(0.3).item())
     exit_price = float(data["Close"].quantile(0.9).item())
 
