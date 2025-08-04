@@ -13,7 +13,7 @@ raw_symbol = st.text_input("Enter Symbol (e.g. XAUUSD, AAPL, RELIANCE)", value="
 
 capital = st.number_input("Capital Available ($)", value=1000.0, step=100.0)
 
-API_KEY = "YOUR_ALPHA_VANTAGE_KEY"
+API_KEY = "AK4PG0CDIEJA7G5A"
 
 def fetch_alpha_forex(pair):
     f, t = pair.split("/")
