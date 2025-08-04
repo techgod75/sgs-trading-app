@@ -48,24 +48,22 @@ if st.button("🔍 Analyze"):
 
     st.info(f"Fetching data for: {sym}")
 
-    if market_type == "Forex":
-    data = yf.download(sym + "=X", period="5y", interval="1d", progress=False)
-    
-    if data.empty:
-        st.warning("Yahoo Finance failed — using Alpha Vantage")
+       if market_type == "Forex":
+        data = yf.download(sym + "=X", period="5y", interval="1d", progress=False)
         
-        # Auto-format Forex pair for Alpha Vantage fallback
-        raw = raw_symbol.replace("=", "").replace("/", "").upper()
-        if len(raw) == 6:
-            from_sym, to_sym = raw[:3], raw[3:]
-            data = fetch_alpha_forex(f"{from_sym}/{to_sym}")
-        else:
-            st.error("Invalid Forex symbol. Use format like 'XAUUSD' or 'EUR/USD'.")
-            st.stop()
+        if data.empty:
+            st.warning("Yahoo Finance failed — using Alpha Vantage")
 
-
+            raw = raw_symbol.replace("=", "").replace("/", "").upper()
+            if len(raw) == 6:
+                from_sym, to_sym = raw[:3], raw[3:]
+                data = fetch_alpha_forex(f"{from_sym}/{to_sym}")
+            else:
+                st.error("Invalid Forex symbol. Use format like 'XAUUSD' or 'EUR/USD'.")
+                st.stop()
     else:
         data = yf.download(sym, period="5y", interval="1d", progress=False)
+
     if data.empty:
         st.error("No historical data available.")
         st.stop()
